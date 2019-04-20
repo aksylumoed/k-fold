@@ -1,6 +1,6 @@
 import numpy as np
 from tempfile import TemporaryFile
-import pca
+import PCA as pca
 
 
 filename = "mfeat-pix.txt"
@@ -16,14 +16,15 @@ def createFeatureVectors():
         mfeat = digitImageVectors[left:right, :]
         testVectors = np.append(testVectors, mfeat)
 
-        Fd = pca.PCA(mfeat, digit)
+        Fd = pca.PCA(mfeat, digit, 100)
+        print(Fd.shape)
         F.append(Fd)
 
     # F: Feature vectors
-    F = np.reshape(F, (10, 100, len(F[0][0])))
+    F = np.reshape(F, (10, len(mfeat[0]), len(mfeat)+1))
     testVectors = np.reshape(testVectors, (1000, 240))
 
-    return np.reshape(np.ravel(F), (1000, 101))
+    return np.reshape(np.ravel(F), (10*len(mfeat[0]), len(mfeat)+1))
 
 
 
