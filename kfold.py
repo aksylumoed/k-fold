@@ -21,7 +21,9 @@ for i in range(10):
     target.append(ones.tolist())
 target = np.reshape(np.ravel(target), (1000, 10))
 
-
+"""
+RANDOMLY splits the dataset and binary set into n-folds
+"""
 def split(dataset, folds=2):
     t = target.tolist()
     zset = []
@@ -45,8 +47,6 @@ seed(1)
 #print(np.array(kfold(train, 4)).shape)
 
 
-
-
 def ridge(phi, target, alpha):
     x = np.transpose(phi).dot(phi)
     id = np.identity(phi[0].size)
@@ -55,45 +55,54 @@ def ridge(phi, target, alpha):
     return inv.dot(np.transpose(phi)).dot(target)
 
 
-def loss(x, y):
-    return np.linalg.norm(x-y)
-
-
+"""
+Calculates the Mean Squared Error
+"""
 def MSE(d, y):
-    return np.sum((d - y)**2)
+    return np.sum((d - y)**2)/len(d)
 
 
-"""
-array m..L would be an list of different model classes
-"""
+
+
 
 def kfold(dataset, binaryset, models, alpha):
+    """
+    
+    :param dataset: this dataset is the set of feature vectors, each with k features
+    :param binaryset: this is the set of binary target vectors z, where all values
+                      are 0 except 1 in index i, for class i 
+    :param models: this is the model parameters we should modify 
+                   (feature length, types of features)
+    :param alpha: alpha for the ridge regression
+    :return: 
+    """
     #risklist = []
     res = []
     for i in range(len(dataset)):
         set = list(dataset)
-
-        validate = np.array(set[i])
-        corrects = np.array(binaryset[i])
-        train = np.array(set)
-        train = np.delete(train, i, 0)
-        train = np.reshape(train, (750, 101))
-        print(train.shape)
+        
+        test_x = np.array(set[i])
+        test_y = np.array(binaryset[i])
+        train_x = np.array(set)
+        train_x = np.delete(train_x, i, 0)
+        train_x = np.reshape(train_x, (750, 101))
+        print(train_x.shape)
         target = np.array(binaryset)
         target = np.delete(np.array(target), i, 0)
         target = np.reshape(target, (750, 10))
         print(target.shape)
-        rlist = []
+
+        rlist = []  # use this to append the MSE values
         for m in range(1):
 
-            print("Train:", train)
+            print("train_x:", train_x)
             print("Target: ", target)
-            dopt = ridge(train, target, alpha)
-
-            trainvotes = np.array(train).dot(dopt)
-            testvotes = np.array(validate).dot(dopt)
+            dopt = ridge(train_x, target, alpha)
+            print("shape: ", dopt.shape)
+            trainvotes = np.array(train_x).dot(dopt)
+            testvotes = np.array(test_x).dot(dopt)
             trainresult = MSE(trainvotes, target)
-            testresult = MSE(testvotes, corrects)
+            testresult = MSE(testvotes, test_y)
 
 
             rlist.append(trainresult)
@@ -122,11 +131,8 @@ def kfold(dataset, binaryset, models, alpha):
 
 def main():
     dataset, binaryset = split(train, folds=4)
-
     models = []
-
-    result = kfold(dataset, binaryset, models, 0)
-
+    result = kfold(dataset, binaryset, models, 3)
     print(result)
 
 
@@ -141,13 +147,13 @@ testvotes = np.array(test).dot(x)
 testresults = [max(p) for p in testvotes]
 testresults = [x - 1 for x in testresults]
 
-corrects = []
+test_y = []
 for i in range(10):
     ones = np.zeros((1, 100))
     ones[:] = i
-    corrects.append(ones.tolist())
+    test_y.append(ones.tolist())
 
-mismatches = np.sum(np.abs(np.sign(np.array(testresults)- np.array(np.ravel(corrects)))))
+mismatches = np.sum(np.abs(np.sign(np.array(testresults)- np.array(np.ravel(test_y)))))
 
 error = 100*mismatches/1000
 """
