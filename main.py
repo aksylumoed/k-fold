@@ -10,21 +10,21 @@ def createFeatureVectors():
     method = 4
     F = []
     testVectors = []
+    k=100
     for digit in range(0, 10):
         left = int(digit)*200
         right = 100 + 200*int(digit)
         mfeat = digitImageVectors[left:right, :]
         testVectors = np.append(testVectors, mfeat)
 
-        Fd = pca.PCA(mfeat, digit, 100)
-        print(Fd.shape)
+        Fd = pca.PCA(mfeat, digit, k)
         F.append(Fd)
 
     # F: Feature vectors
-    F = np.reshape(F, (10, len(mfeat[0]), len(mfeat)+1))
+    F = np.reshape(F, (10, k, len(mfeat)+1))
     testVectors = np.reshape(testVectors, (1000, 240))
 
-    return np.reshape(np.ravel(F), (10*len(mfeat[0]), len(mfeat)+1))
+    return np.reshape(np.ravel(F), (10, k, len(mfeat)+1))
 
 
 
