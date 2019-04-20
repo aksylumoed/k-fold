@@ -51,14 +51,14 @@ def PCA( mfeat, digit, m):
 
     U = U[:m+1]
     mfeat = mfeat.transpose()
-    for j in range(len(mfeat)):
+    for j in range(k):
         f_j = []
         for i in range(len(U)):
             f_j = np.append(f_j, np.transpose(U[i]).dot(mfeat[j]))
         f_j = np.append(f_j, 1)
         featureVector = np.append(featureVector, f_j)
     (x, y) = mfeat.shape
-    featureVector = featureVector.reshape(x, y+1)
+    featureVector = featureVector.reshape(k, y+1)
 
     #the decision function is determined by the k feature vectors resulting map
     out = open("Method_4" + "codebook" + str(len(U)) + "number" + str(digit) + ".txt", "w")
