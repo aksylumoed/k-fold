@@ -10,7 +10,7 @@ def createFeatureVectors():
     method = 4
     F = []
     testVectors = []
-    k=100
+    k = 40
     for digit in range(0, 10):
         left = int(digit)*200
         right = 100 + 200*int(digit)
@@ -21,10 +21,10 @@ def createFeatureVectors():
         F.append(Fd)
 
     # F: Feature vectors
-    F = np.reshape(F, (10, k, len(mfeat)+1))
+    F = np.reshape(F, (10, k, k+1))
     testVectors = np.reshape(testVectors, (1000, 240))
 
-    return np.reshape(np.ravel(F), (10, k, len(mfeat)+1))
+    return np.reshape(np.ravel(F), (10 * k, k+1))
 
 
 
