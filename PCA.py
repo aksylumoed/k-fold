@@ -12,7 +12,7 @@ def plotVariance(variance, digit):
     axs[1].plot(['%s' %i for i in range(len(variance))], cumulative)
     axs[1].set_xlabel('Cummulative')
 
-    plt.draw()
+    #plt.draw()
 
 '''
     PCA
