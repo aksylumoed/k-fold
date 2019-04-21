@@ -119,49 +119,31 @@ def kfold(dataset, binaryset, models, alpha):
     # print("Result is: ", res)
     sum1 = 0
     sum2 = 0
+    sum3 = 0
+    sum4 = 0
     for i in range(len(res)):
         sum1 = sum1 + res[i][0]
         sum2 = sum2 + res[i][1]
+        sum3 = sum3 + res[i][2]
+        sum4 = sum4 + res[i][3]
 
     result = []
     result.append(sum1 / len(res))
     result.append(sum2 / len(res))
-    res
+    result.append(sum3 / len(res))
+    result.append(sum4 / len(res))
     # return np.argmin(res) # for now return the result
 
     return result
-
-
-# print(ridge(train, train_y, 0))
-
-#main()
-
-"""
-x = np.linalg.pinv(train).dot(train_y)
-testvotes = np.array(test).dot(x)
-testresults = [max(p) for p in testvotes]
-testresults = [x - 1 for x in testresults]
-
-test_y = []
-for i in range(10):
-    ones = np.zeros((1, 100))
-    ones[:] = i
-    test_y.append(ones.tolist())
-
-mismatches = np.sum(np.abs(np.sign(np.array(testresults)- np.array(np.ravel(test_y)))))
-
-error = 100*mismatches/1000
-"""
 
 
 def main():
     filename = "mfeat-pix.txt"
     data1 = np.loadtxt(filename)
 
-    w = [100]
-    for k in range(1, 100):
-        data = feat.createFeatureVectors(k)
-
+    results = []
+    for k in range(1, 10):
+        data = feat.createFeatureVectors(1)
         train = data.tolist()
         test = data[1::2]
 
@@ -172,14 +154,16 @@ def main():
             ones[:, i] = 1
             train_y.append(ones.tolist())
         train_y = np.reshape(np.ravel(train_y), (1000, 10))
-        fold = [2, 4, 5, 10, 20, 25, 50]
-        foldi = [2]
-        for foldSize in fold:
 
-            dataset, binaryset = split(train, train_y, folds=foldSize )
-            models = []
-            result = kfold(dataset, binaryset, models, 3)
-            #print(result)
-        #plt.show()
+        #fold = [2, 4, 5, 10, 20, 25, 50]
 
+        #for foldSize in fold:
+        #print("For fold: ", foldSize)
+        dataset, binaryset = split(train, train_y, folds=5)
+        result = kfold(dataset, binaryset, 3)
+        #print(result)
+        results.append(result)
+    
+    print(results)
+    
 main()
