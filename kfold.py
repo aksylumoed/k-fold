@@ -85,7 +85,7 @@ def linear_regression(train_x, train_y, alpha, test_x, test_y):
     return rlist
 
 
-def kfold(dataset, binaryset, models, alpha):
+def kfold(dataset, binaryset, alpha):
     """
 
     :param dataset: this dataset is the set of feature vectors, each with k features
