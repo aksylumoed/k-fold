@@ -4,26 +4,26 @@ import features as feat
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 """
 RANDOMLY splits the dataset and binary set into n-folds
 """
 
-#100 = 2 * 2 * 5 * 5
+
+# 100 = 2 * 2 * 5 * 5
 # Possible folds {2,4,5,10,20,25,50,100}
 def split(dataset, train_y, folds=2):
     t = train_y.tolist()
     zset = []
     splitset = []
     data = list(dataset)
-    foldsize = (len(data) / folds)/10
+    foldsize = (len(data) / folds) / 10
     for i in range(folds):
         fold = []
         zfold = []
         for j in range(0, 10):
             k = 0
             while k < foldsize:
-                ind = k + j*len(dataset)//10
+                ind = k + j * len(dataset) // 10
                 fold.append(data[ind])
                 zfold.append(t[ind])
                 k += 1
@@ -60,7 +60,7 @@ def MISS(train_y, train_y_prediction):
     for i in range(len(train_y)):
         if np.argmax(train_y[i]) != np.argmax(train_y_prediction[i]):
             miss += 1
-    return miss/len(train_y)
+    return miss / len(train_y)
 
 
 def linear_regression(train_x, train_y, alpha, test_x, test_y):
@@ -108,11 +108,11 @@ def kfold(dataset, binaryset, alpha):
         test_y = np.array(binaryset[i])
         train_x = np.array(set)
         train_x = np.delete(train_x, i, 0)
-        train_x = np.reshape(train_x, (size-len(test_x), len(set[i][0])))
+        train_x = np.reshape(train_x, (size - len(test_x), len(set[i][0])))
 
         train_y = np.array(binaryset)
         train_y = np.delete(np.array(train_y), i, 0)
-        train_y = np.reshape(train_y, (size-len(test_x), 10))
+        train_y = np.reshape(train_y, (size - len(test_x), 10))
 
         rlist = linear_regression(train_x, train_y, alpha, test_x, test_y)
         res.append(rlist)
@@ -142,7 +142,7 @@ def main():
     data1 = np.loadtxt(filename)
 
     results = []
-    for k in range(1, 10):
+    for k in range(1, 20):
         data = feat.createFeatureVectors(1)
         train = data.tolist()
         test = data[1::2]
@@ -155,15 +155,36 @@ def main():
             train_y.append(ones.tolist())
         train_y = np.reshape(np.ravel(train_y), (1000, 10))
 
-        #fold = [2, 4, 5, 10, 20, 25, 50]
+        # fold = [2, 4, 5, 10, 20, 25, 50]
 
-        #for foldSize in fold:
-        #print("For fold: ", foldSize)
-        dataset, binaryset = split(train, train_y, folds=5)
+        # for foldSize in fold:
+        # print("For fold: ", foldSize)
+        dataset, binaryset = split(train, train_y, folds=3)
         result = kfold(dataset, binaryset, 3)
-        #print(result)
+        # print(result)
         results.append(result)
-    
+
     print(results)
-    
+
+    mse_train = [results[i][0] for i in range(len(results))]
+    mse_test = [results[i][1] for i in range(len(results))]
+    miss_train = [results[i][2] for i in range(len(results))]
+    miss_test = [results[i][3] for i in range(len(results))]
+    print(mse_train)
+
+    plt.xlabel('k')
+    plt.ylabel('error')
+    plt.title('Bias-Variance, Linear Scaling')
+    plt.grid(True)
+    nfeatures = range(1,20)
+    p1, = plt.plot(nfeatures, mse_train, label='mse_train')
+    p2, = plt.plot(nfeatures, mse_test, label='mse_test')
+    p3, = plt.plot(nfeatures, miss_train, label='miss_train')
+    p4, = plt.plot(nfeatures, miss_test, label='miss_test')
+    plt.legend(handles=[p1, p2, p3, p4])
+    plt.show()
+
+
+
+
 main()
