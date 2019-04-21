@@ -129,13 +129,19 @@ def kfold(dataset, binaryset, models, alpha):
     # print("Result is: ", res)
     sum1 = 0
     sum2 = 0
+    sum3 = 0
+    sum4 = 0
     for i in range(len(res)):
         sum1 = sum1 + res[i][0]
         sum2 = sum2 + res[i][1]
+        sum3 = sum3 + res[i][2]
+        sum4 = sum4 + res[i][3]
 
     result = []
     result.append(sum1 / len(res))
     result.append(sum2 / len(res))
+    result.append(sum3 / len(res))
+    result.append(sum4 / len(res))
     # return np.argmin(res) # for now return the result
 
     return result
