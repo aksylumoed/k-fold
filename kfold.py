@@ -1,17 +1,18 @@
 import numpy as np
-from random import seed
 import features as feat
 import matplotlib.pyplot as plt
+
 import seaborn as sns
 
-"""
-RANDOMLY splits the dataset and binary set into n-folds
-"""
 
-
-# 100 = 2 * 2 * 5 * 5
-# Possible folds {2,4,5,10,20,25,50,100}
 def split(dataset, train_y, folds=2):
+    """
+    this function will split the dataset into number of *folds*
+    :param dataset: set data points (during computation we use feature vectors)
+    :param train_y: the binary vectors
+    :param folds: number of folds
+    :return: a dataset and a binary vector set divided in n folds
+    """
     t = train_y.tolist()
     zset = []
     splitset = []
@@ -32,13 +33,14 @@ def split(dataset, train_y, folds=2):
     return splitset, zset
 
 
-seed(1)
-
-
-# print(np.array(kfold(train, 4)).shape)
-
-
 def ridge(phi, train_y, alpha):
+    """
+
+    :param phi: phi is the training data from the feature vector set
+    :param train_y: target binary vector set
+    :param alpha: we use alpha in order penalise models that overfit
+    :return: W_opt that we use to create predicted data points
+    """
     x = np.transpose(phi).dot(phi)
     id = np.identity(phi[0].size)
     inv = np.linalg.inv(np.add(x, alpha * alpha * id))
@@ -46,16 +48,23 @@ def ridge(phi, train_y, alpha):
     return inv.dot(np.transpose(phi)).dot(train_y)
 
 
-"""
-Calculates the Mean Squared Error
-"""
-
-
 def MSE(d, y):
-    return np.sum((d - y) ** 2) / len(d)
+    """
+    calculates the Mean Squared Error between two data points
+    :param d: vector
+    :param y: vector
+    :return: mse
+    """
+    return np.sum(np.power((d - y), 2)) / len(d)
 
 
 def MISS(train_y, train_y_prediction):
+    """
+    calculates the missclassification rate between expected and predicted points
+    :param train_y:
+    :param train_y_prediction:
+    :return:
+    """
     miss = 0
     for i in range(len(train_y)):
         if np.argmax(train_y[i]) != np.argmax(train_y_prediction[i]):
@@ -64,6 +73,16 @@ def MISS(train_y, train_y_prediction):
 
 
 def linear_regression(train_x, train_y, alpha, test_x, test_y):
+    """
+    ridge regression task that computes Wopt using ridge() and calculates
+    training and testing error
+    :param train_x: training set
+    :param train_y: binary target vector for training
+    :param alpha:
+    :param test_x: validation set
+    :param test_y: binary target vector for testing
+    :return: list with the training and testing error
+    """
     rlist = []  # use this to append the MSE values
 
     Wopt = ridge(train_x, train_y, alpha)
@@ -87,6 +106,8 @@ def linear_regression(train_x, train_y, alpha, test_x, test_y):
 
 def kfold(dataset, binaryset, alpha):
     """
+    uses an already splitted dataset and picks a new validation and training set
+    for each i from 0 to k
 
     :param dataset: this dataset is the set of feature vectors, each with k features
     :param binaryset: this is the set of binary train_y vectors z, where all values
@@ -94,7 +115,7 @@ def kfold(dataset, binaryset, alpha):
     :param models: this is the model parameters we should modify
                    (feature length, types of features)
     :param alpha: alpha for the ridge regression
-    :return:
+    :return: returns the list of all training and testing error
     """
     # risklist = []
     res = []
@@ -140,10 +161,13 @@ def kfold(dataset, binaryset, alpha):
 def main():
     filename = "mfeat-pix.txt"
     data1 = np.loadtxt(filename)
-
     results = []
-    for k in range(1, 20):
-        data = feat.createFeatureVectors(1)
+
+
+    nfeatures = range(1, 241)
+    for k in nfeatures:
+        print(k)
+        data = feat.createFeatureVectors(k)
         train = data.tolist()
         test = data[1::2]
 
@@ -159,7 +183,7 @@ def main():
 
         # for foldSize in fold:
         # print("For fold: ", foldSize)
-        dataset, binaryset = split(train, train_y, folds=3)
+        dataset, binaryset = split(train, train_y, folds=5)
         result = kfold(dataset, binaryset, 3)
         # print(result)
         results.append(result)
@@ -170,21 +194,26 @@ def main():
     mse_test = [results[i][1] for i in range(len(results))]
     miss_train = [results[i][2] for i in range(len(results))]
     miss_test = [results[i][3] for i in range(len(results))]
-    print(mse_train)
 
+
+    """
+    
+     we use this to plot the training and testing error and to observe effect
+      of overfitting and underfitting
+  
+    """
+    sns.set()
     plt.xlabel('k')
     plt.ylabel('error')
-    plt.title('Bias-Variance, Linear Scaling')
-    plt.grid(True)
-    nfeatures = range(1,20)
-    p1, = plt.plot(nfeatures, mse_train, label='mse_train')
-    p2, = plt.plot(nfeatures, mse_test, label='mse_test')
-    p3, = plt.plot(nfeatures, miss_train, label='miss_train')
-    p4, = plt.plot(nfeatures, miss_test, label='miss_test')
-    plt.legend(handles=[p1, p2, p3, p4])
+    plt.title('Measuring Training and Testing Error')
+
+
+    p1, = plt.plot(nfeatures, mse_train, label='MSE_train')
+    p2, = plt.plot(nfeatures, mse_test, label='MSE_test')
+    p3, = plt.plot(nfeatures, miss_train, label='MISS_train')
+    p4, = plt.plot(nfeatures, miss_test, label='MISS_test')
+    plt.legend(ncol=2, loc='best', prop={'size': 8})
     plt.show()
-
-
 
 
 main()
