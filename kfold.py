@@ -5,43 +5,59 @@ import features as feat
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-filename = "mfeat-pix.txt"
+def main():
+    filename = "mfeat-pix.txt"
+    data1 = np.loadtxt(filename)
 
-data1 = np.loadtxt(filename)
+    for k in range(240):
+        data = feat.createFeatureVectors(k)
+        print(data.shape)
+        train = data.tolist()
+        test = data[1::2]
 
-data = feat.createFeatureVectors()
-print(data.shape)
-train = data.tolist()
-test = data[1::2]
+        train_y = []
 
-train_y = []
+        for i in range(10):
+            ones = np.zeros((100, 10))
+            ones[:, i] = 1
+            train_y.append(ones.tolist())
+        train_y = np.reshape(np.ravel(train_y), (1000, 10))
 
-for i in range(10):
-    ones = np.zeros((100, 10))
-    ones[:, i] = 1
-    train_y.append(ones.tolist())
-train_y = np.reshape(np.ravel(train_y), (1000, 10))
+        fold = [2,4,5,10,20,25,50,100]
+        for foldSize in fold:
+            dataset, binaryset = split(train, train_y, folds=foldSize )
+            models = []
+            result = kfold(dataset, binaryset, models, 3)
+            print(result)
+        #plt.show()
+
+
+
+    main()
 
 
 """
 RANDOMLY splits the dataset and binary set into n-folds
 """
+#100 = 2 * 2 * 5 * 5
+# Possible folds {2,4,5,10,20,25,50,100}
 
-
-def split(dataset, folds=2):
+def split(dataset, train_y, folds=2):
     t = train_y.tolist()
     zset = []
     splitset = []
     data = list(dataset)
-    foldsize = int(len(data) / folds)
+    foldsize = int(len(data) / folds)/10
     for i in range(folds):
         fold = []
         zfold = []
-        while len(fold) < foldsize:
-            # add random element
-            ind = randrange(len(data))
-            fold.append(data.pop(ind))
-            zfold.append(t.pop(ind))
+        for j in range(0,10):
+            k = 0
+            while k < foldsize:
+                ind = k + j*100
+                fold.append(data.pop(ind))
+                zfold.append(t.pop(ind))
+                k += 1
         splitset.append(fold)
         zset.append(zfold)
     return splitset, zset
@@ -70,6 +86,14 @@ def MSE(d, y):
     return np.sum((d - y) ** 2) / len(d)
 
 
+def MISS(train_y, train_y_prediction):
+    miss = 0
+    for i in range(len(train_y)): 
+        if np.argmax(train_y[i]) != np.argmax(train_y_prediction[i]):
+            miss += 1
+    return miss/len(train_y)
+
+
 def kfold(dataset, binaryset, models, alpha):
     """
 
@@ -85,36 +109,44 @@ def kfold(dataset, binaryset, models, alpha):
     res = []
     for i in range(len(dataset)):
         set = list(dataset)
+        size = len(set[0])
+        size *= 4
+
 
         test_x = np.array(set[i])
         test_y = np.array(binaryset[i])
         train_x = np.array(set)
         train_x = np.delete(train_x, i, 0)
-        train_x = np.reshape(train_x, (len(train)-len(test_x), len(set[i][0])))
-        print(train_x.shape)
+
+        train_x = np.reshape(train_x, (size-len(test_x), len(set[i][0])))
+
         train_y = np.array(binaryset)
         train_y = np.delete(np.array(train_y), i, 0)
-        train_y = np.reshape(train_y, (len(train)-len(test_x), 10))
-        print(train_y.shape)
+        train_y = np.reshape(train_y, (size-len(test_x), 10))
+
 
         rlist = []  # use this to append the MSE values
-        for m in range(1):
-            print("train_x:", train_x)
-            print("train_y: ", train_y)
-            dopt = ridge(train_x, train_y, alpha)
-            print("shape: ", dopt.shape)
-            trainvotes = np.array(train_x).dot(dopt)
-            testvotes = np.array(test_x).dot(dopt)
-            trainresult = MSE(trainvotes, train_y)
-            testresult = MSE(testvotes, test_y)
 
-            visualizePredictedAndExpected(test_y, testvotes)
+        Wopt = ridge(train_x, train_y, alpha)
 
-            rlist.append(trainresult)
-            rlist.append(testresult)
+        train_y_pred = np.array(train_x).dot(Wopt)
+        test_y_pred = np.array(test_x).dot(Wopt)
+        
+        train_MSE = MSE(train_y_pred, train_y)
+        test_MSE = MSE(test_y_pred, test_y)
+        
+        train_MISS = MISS(train_y, train_y_pred)
+        test_MISS = MISS(test_y, test_y_pred)
+        #visualizePredictedAndExpected(test_y, testvotes)
 
-            # r = (1/len(dataset)) * np.sum(loss(dopt, train_y))
-            # rlist.append(r)
+        rlist.append(Wopt)
+        rlist.append(train_MSE)
+        rlist.append(test_MSE)
+        rlist.append(train_MISS)
+        rlist.append(test_MISS)
+
+        # r = (1/len(dataset)) * np.sum(loss(dopt, train_y))
+        # rlist.append(r)
 
         # risk = np.mean(rlist)
 
@@ -134,17 +166,9 @@ def kfold(dataset, binaryset, models, alpha):
     return result
 
 
-def main():
-    dataset, binaryset = split(train, folds=4)
-    models = []
-    result = kfold(dataset, binaryset, models, 3)
-    print(result)
-    plt.show()
-
-
 # print(ridge(train, train_y, 0))
 
-main()
+#main()
 
 """
 x = np.linalg.pinv(train).dot(train_y)
